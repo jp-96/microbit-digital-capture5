@@ -57,14 +57,8 @@ static const uint16_t MICROBIT_CUSTOM_ID_BASE = 32768;
 #define MICROBIT_INDOORBIKE_STEP_SERVICE_ID (MICROBIT_CUSTOM_ID_BASE+2)
 #endif /* #ifndef MICROBIT_INDOORBIKE_STEP_SERVICE_ID */
 
-// FTMP Event Val
-// # 0x00 M Request Control
-#define FTMP_EVENT_VAL_OP_CODE_CPPR_00_REQUEST_CONTROL                      0b0000000000000001
-// # 0x01 M Reset
-#define FTMP_EVENT_VAL_OP_CODE_CPPR_01_RESET                                0b0000000000000010
-// # 0x07 M Start or Resume
-#define FTMP_EVENT_VAL_OP_CODE_CPPR_07_START_RESUME                         0b0000000000000100
-// # 0x08 M Stop or Pause [UINT8, 0x01-STOP, 0x02-PAUSE]
-#define FTMP_EVENT_VAL_OP_CODE_CPPR_08_STOP_PAUSE                           0b0000000000001000
+// FTMP Event
+// Fitness Machine Control Point
+#define FTMP_EVENT_VAL_FITNESS_MACHINE_CONTROL_POINT    0b0000000000000001
 
 #endif /* #ifndef MICROBIT_CUSTOM_H */

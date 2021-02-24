@@ -148,10 +148,16 @@ public:
       */
     MicroBitIndoorBikeStepService(MicroBit &_uBit, MicroBitIndoorBikeStepSensor &_indoorBike, uint16_t id = MICROBIT_INDOORBIKE_STEP_SERVICE_ID);
 
+private:
     /**
       * Callback. Invoked when any of our attributes are written via BLE.
       */
     void onDataWritten(const GattWriteCallbackParams *params);
+
+    /**
+      * Callback.  Fitness Machine Control Point.
+      */
+    void onFitnessMachineControlPoint(MicroBitEvent e);
 
     /**
      * Indoor Bike update callback
@@ -184,7 +190,11 @@ private:
     GattAttribute::Handle_t fitnessMachineFeatureCharacteristicHandle;
     GattAttribute::Handle_t fitnessMachineStatusCharacteristicHandle;
     GattAttribute::Handle_t fitnessTrainingStatusCharacteristicHandle;
-    
+
+    // Fitness Machine Control Point Data
+    uint16_t fitnessMachineControlPointLen;
+    uint8_t fitnessMachineControlPointData[20];
+
     // var
     uint8_t stopOrPause;
     
@@ -197,9 +207,6 @@ private:
     void sendTrainingStatusIdle(void);
     void sendTrainingStatusManualMode(void);
     void sendFitnessMachineStatusReset(void);
-
-private:
-    void onFitnessMachineControlPoint(MicroBitEvent e);
 
 };
 
