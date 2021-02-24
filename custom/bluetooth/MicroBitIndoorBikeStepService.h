@@ -155,9 +155,9 @@ private:
     void onDataWritten(const GattWriteCallbackParams *params);
 
     /**
-      * Callback.  Fitness Machine Control Point.
+      * Fitness Machine Control Point procedure.
       */
-    void onFitnessMachineControlPoint(MicroBitEvent e);
+    void doFitnessMachineControlPoint(const GattWriteCallbackParams *params);
 
     /**
      * Indoor Bike update callback
@@ -190,10 +190,6 @@ private:
     GattAttribute::Handle_t fitnessMachineFeatureCharacteristicHandle;
     GattAttribute::Handle_t fitnessMachineStatusCharacteristicHandle;
     GattAttribute::Handle_t fitnessTrainingStatusCharacteristicHandle;
-
-    // Fitness Machine Control Point Data
-    uint16_t fitnessMachineControlPointLen;
-    uint8_t fitnessMachineControlPointData[20];
 
     // var
     uint8_t stopOrPause;

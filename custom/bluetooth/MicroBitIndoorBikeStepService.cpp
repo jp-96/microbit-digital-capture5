@@ -125,9 +125,7 @@ MicroBitIndoorBikeStepService::MicroBitIndoorBikeStepService(MicroBit &_uBit, Mi
     if (EventModel::defaultEventBus)
     {
         EventModel::defaultEventBus->listen(this->indoorBike.getId(), MICROBIT_INDOOR_BIKE_STEP_SENSOR_EVT_DATA_UPDATE
-            , this, &MicroBitIndoorBikeStepService::indoorBikeUpdate, MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
-        EventModel::defaultEventBus->listen(this->id, FTMP_EVENT_VAL_FITNESS_MACHINE_CONTROL_POINT
-            , this, &MicroBitIndoorBikeStepService::onFitnessMachineControlPoint, MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
+            , this, &MicroBitIndoorBikeStepService::indoorBikeUpdate, MESSAGE_BUS_LISTENER_IMMEDIATE);
     }
 
 }
@@ -137,52 +135,46 @@ void MicroBitIndoorBikeStepService::onDataWritten(const GattWriteCallbackParams 
     uBit.serial.printf("CP:%" PRIu32 ", onDataWritten\r\n", (uint32_t)system_timer_current_time());
     if (params->handle == fitnessMachineControlPointCharacteristicHandle && params->len >= 1)
     {
-        fitnessMachineControlPointLen = params->len;
-        for(int i=0; i<params->len; i++)
-        {
-            fitnessMachineControlPointData[i]=params->data[i];
-        }
-        new MicroBitEvent(this->id, FTMP_EVENT_VAL_FITNESS_MACHINE_CONTROL_POINT);
+        this->doFitnessMachineControlPoint(params);
     }
 }
 
-void MicroBitIndoorBikeStepService::onFitnessMachineControlPoint(MicroBitEvent e)
+void MicroBitIndoorBikeStepService::doFitnessMachineControlPoint(const GattWriteCallbackParams *params)
 {
-    uBit.serial.printf("CP:%" PRIu32 ", onFitnessMachineControlPoint\r\n", (uint32_t)system_timer_current_time());
-    return;
+    uBit.serial.printf("CP:%" PRIu32 ", doFitnessMachineControlPoint\r\n", (uint32_t)system_timer_current_time());
     uint8_t responseBuffer[3];
     responseBuffer[0] = FTMP_OP_CODE_CPPR_80_RESPONSE_CODE;
     uint8_t *opCode=&responseBuffer[1];
-    opCode[0]=fitnessMachineControlPointData[0];
+    opCode[0]=params->data[0];
     uint8_t *result=&responseBuffer[2];
     result[0] = FTMP_RESULT_CODE_CPPR_03_INVALID_PARAMETER;
     switch (opCode[0])
     {
     case FTMP_OP_CODE_CPPR_00_REQUEST_CONTROL:
-        if (fitnessMachineControlPointLen == 1)
+        if (params->len == 1)
         {
             result[0] = FTMP_RESULT_CODE_CPPR_01_SUCCESS;
         }
         break;
 
     case FTMP_OP_CODE_CPPR_01_RESET:
-        if (fitnessMachineControlPointLen == 1)
+        if (params->len == 1)
         {
             result[0] = FTMP_RESULT_CODE_CPPR_01_SUCCESS;
         }
         break;
 
     case FTMP_OP_CODE_CPPR_07_START_RESUME:
-        if (fitnessMachineControlPointLen == 1)
+        if (params->len == 1)
         {
             result[0] = FTMP_RESULT_CODE_CPPR_01_SUCCESS;
         }
         break;
 
     case FTMP_OP_CODE_CPPR_08_STOP_PAUSE:
-        if (fitnessMachineControlPointLen == 2)
+        if (params->len == 2)
         {
-            this->stopOrPause = fitnessMachineControlPointData[1];
+            this->stopOrPause = params->data[1];
             result[0] = FTMP_RESULT_CODE_CPPR_01_SUCCESS;
         }
         break;
@@ -230,9 +222,9 @@ void MicroBitIndoorBikeStepService::onFitnessMachineControlPoint(MicroBitEvent e
     
     // Debug - USB Serial
     uBit.serial.printf("CP:%" PRIu32 ", opCode[0x%02X], result[0x%02X], data", (uint32_t)system_timer_current_time(), opCode[0], result[0]);
-    for (int i=0; i<fitnessMachineControlPointLen; i++)
+    for (int i=0; i<params->len; i++)
     {
-        uBit.serial.printf(", 0x%02X", fitnessMachineControlPointData[i]);
+        uBit.serial.printf(", 0x%02X", params->data[i]);
     }
     uBit.serial.printf("\r\n");
     
@@ -262,19 +254,19 @@ void MicroBitIndoorBikeStepService::sendTrainingStatusIdle(void)
 {
     static const uint8_t buff[]={FTMP_FLAGS_TRAINING_STATUS_FIELD_00_STATUS_ONLY, FTMP_VAL_TRAINING_STATUS_01_IDEL};
     uBit.ble->gattServer().notify(this->fitnessTrainingStatusCharacteristicHandle
-        , (uint8_t *)&buff, sizeof(buff));
+        , (const uint8_t *)&buff, sizeof(buff));
 }
 
 void MicroBitIndoorBikeStepService::sendTrainingStatusManualMode(void)
 {
     static const uint8_t buff[]={FTMP_FLAGS_TRAINING_STATUS_FIELD_00_STATUS_ONLY, FTMP_VAL_TRAINING_STATUS_0D_MANUAL_MODE};
     uBit.ble->gattServer().notify(this->fitnessTrainingStatusCharacteristicHandle
-        , (uint8_t *)&buff, sizeof(buff));
+        , (const uint8_t *)&buff, sizeof(buff));
 }
     
 void MicroBitIndoorBikeStepService::sendFitnessMachineStatusReset(void)
 {
     static const uint8_t buff[]={FTMP_OP_CODE_FITNESS_MACHINE_STATUS_01_RESET};
     uBit.ble->gattServer().notify(this->fitnessMachineStatusCharacteristicHandle
-        , (uint8_t *)&buff, sizeof(buff));
+        , (const uint8_t *)&buff, sizeof(buff));
 }
