@@ -125,15 +125,16 @@ MicroBitIndoorBikeStepService::MicroBitIndoorBikeStepService(MicroBit &_uBit, Mi
     if (EventModel::defaultEventBus)
     {
         EventModel::defaultEventBus->listen(this->indoorBike.getId(), MICROBIT_INDOOR_BIKE_STEP_SENSOR_EVT_DATA_UPDATE
-            , this, &MicroBitIndoorBikeStepService::indoorBikeUpdate, MESSAGE_BUS_LISTENER_IMMEDIATE);
+            , this, &MicroBitIndoorBikeStepService::indoorBikeUpdate, MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
         EventModel::defaultEventBus->listen(this->id, FTMP_EVENT_VAL_FITNESS_MACHINE_CONTROL_POINT
-            , this, &MicroBitIndoorBikeStepService::onFitnessMachineControlPoint, MESSAGE_BUS_LISTENER_IMMEDIATE);
+            , this, &MicroBitIndoorBikeStepService::onFitnessMachineControlPoint, MESSAGE_BUS_LISTENER_QUEUE_IF_BUSY);
     }
 
 }
 
 void MicroBitIndoorBikeStepService::onDataWritten(const GattWriteCallbackParams *params)
 {
+    uBit.serial.printf("CP:%" PRIu32 ", onDataWritten\r\n", (uint32_t)system_timer_current_time());
     if (params->handle == fitnessMachineControlPointCharacteristicHandle && params->len >= 1)
     {
         fitnessMachineControlPointLen = params->len;
@@ -147,6 +148,8 @@ void MicroBitIndoorBikeStepService::onDataWritten(const GattWriteCallbackParams 
 
 void MicroBitIndoorBikeStepService::onFitnessMachineControlPoint(MicroBitEvent e)
 {
+    uBit.serial.printf("CP:%" PRIu32 ", onFitnessMachineControlPoint\r\n", (uint32_t)system_timer_current_time());
+    return;
     uint8_t responseBuffer[3];
     responseBuffer[0] = FTMP_OP_CODE_CPPR_80_RESPONSE_CODE;
     uint8_t *opCode=&responseBuffer[1];
