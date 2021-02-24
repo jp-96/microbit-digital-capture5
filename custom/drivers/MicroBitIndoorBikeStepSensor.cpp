@@ -26,7 +26,7 @@ SOFTWARE.
 
 void calcIndoorBikeData(uint32_t crankIntervalTime, uint32_t* cadence2, uint32_t* speed100)
 {
-    
+    static const uint64_t DIV_SPEED = 7;
     if (crankIntervalTime==0)
     {
         *cadence2 = 0;
@@ -35,7 +35,7 @@ void calcIndoorBikeData(uint32_t crankIntervalTime, uint32_t* cadence2, uint32_t
     else
     {
         *cadence2 = (uint32_t)( (uint64_t)K_STEP_CADENCE / crankIntervalTime );
-        *speed100 = (uint32_t)( (uint64_t)K_STEP_SPEED   / crankIntervalTime );
+        *speed100 = (uint32_t)( (uint64_t)K_STEP_SPEED   / crankIntervalTime / DIV_SPEED);
     }
 }
 
