@@ -24,18 +24,20 @@ SOFTWARE.
 
 #include "MicroBitIndoorBikeStepSensor.h"
 
-void calcIndoorBikeData(uint32_t crankIntervalTime, uint32_t* cadence2, uint32_t* speed100)
+void MicroBitIndoorBikeStepSensor::calcIndoorBikeData(uint32_t crankIntervalTime, uint8_t resistanceLevel10, uint32_t* cadence2, uint32_t* speed100, int16_t* power)
 {
-    static const uint64_t DIV_SPEED = 7;
     if (crankIntervalTime==0)
     {
         *cadence2 = 0;
         *speed100 = 0;
+        *power = 0;
     }
     else
     {
         *cadence2 = (uint32_t)( (uint64_t)K_STEP_CADENCE / crankIntervalTime );
-        *speed100 = (uint32_t)( (uint64_t)K_STEP_SPEED   / crankIntervalTime / DIV_SPEED);
+        *speed100 = (uint32_t)( (uint64_t)K_STEP_SPEED   / crankIntervalTime );
+        // https://diary.cyclekikou.net/archives/15876
+        *power = (int32_t)((double)(*speed100) * (K_INCLINE_A * ((double)resistanceLevel10)/10 + K_INCLINE_B) * K_POWER);
     }
 }
 
@@ -46,8 +48,10 @@ MicroBitIndoorBikeStepSensor::MicroBitIndoorBikeStepSensor(MicroBit &_uBit, Micr
     this->lastIntervalTime=0;
     this->lastCadence2=0;
     this->lastSpeed100=0;
+    this->lastPower=0;
     this->updateSampleTimestamp=0;
-    
+    this->resistanceLevel10 = MIN_RESISTANCE_LEVEL10;
+
     if (EventModel::defaultEventBus)
         EventModel::defaultEventBus->listen(MICROBIT_INDOOR_BIKE_STEP_SENSOR_EVENT_IDs[pin], MICROBIT_PIN_EVT_FALL
             , this, &MicroBitIndoorBikeStepSensor::onStepSensor);
@@ -95,6 +99,31 @@ uint32_t MicroBitIndoorBikeStepSensor::getSpeed100(void)
     return this->lastSpeed100;
 }
 
+int16_t MicroBitIndoorBikeStepSensor::getPower(void)
+{
+    return this->lastPower;
+}
+
+uint8_t MicroBitIndoorBikeStepSensor::getResistanceLevel10(void)
+{
+    return this->resistanceLevel10;
+}
+void MicroBitIndoorBikeStepSensor::setResistanceLevel10(uint8_t resistanceLevel10)
+{
+    if (resistanceLevel10<MIN_RESISTANCE_LEVEL10)
+    {
+        this->resistanceLevel10=MIN_RESISTANCE_LEVEL10;
+    }
+    else if (resistanceLevel10>MAX_RESISTANCE_LEVEL10)
+    {
+        this->resistanceLevel10=MAX_RESISTANCE_LEVEL10;
+    }
+    else
+    {
+        this->resistanceLevel10 = resistanceLevel10;
+    }
+}
+
 void MicroBitIndoorBikeStepSensor::update(void)
 {
     uint64_t currentTime = system_timer_current_time_us();
@@ -122,7 +151,7 @@ void MicroBitIndoorBikeStepSensor::update(void)
             this->lastIntervalTime = periodTime / intervalNum;
         }
         
-        calcIndoorBikeData(this->lastIntervalTime, &this->lastCadence2, &this->lastSpeed100);
+        calcIndoorBikeData(this->lastIntervalTime, this->resistanceLevel10, &this->lastCadence2, &this->lastSpeed100, &this->lastPower);
         
         MicroBitEvent e(id, MICROBIT_INDOOR_BIKE_STEP_SENSOR_EVT_DATA_UPDATE);
     }

@@ -30,16 +30,15 @@ SOFTWARE.
 #include "MicroBitCustomComponent.h"
 #include <queue>
 
-// Coefficient of Cadence and Speed
-#define K_STEP_CADENCE  120000000
-#define K_STEP_SPEED   1800000000
-
 /**
   * Status flags
   */
 // Universal flags used as part of the status field
 // #define MICROBIT_COMPONENT_RUNNING		0x01
 #define MICROBIT_INDOOR_BIKE_STEP_SENSOR_ADDED_TO_IDLE              0x02
+
+#define MIN_RESISTANCE_LEVEL10 10
+#define MAX_RESISTANCE_LEVEL10 80
 
 enum MicrobitIndoorBikeStepSensorPin
 {
@@ -82,26 +81,47 @@ private:
     uint32_t lastCadence2;
     // 最新の速度（単位： km/h の 100倍）
     uint32_t lastSpeed100;
+    // 最新のパワー（単位： watt）
+    int16_t lastPower;
     
     // 次のupdate実行時間
     uint64_t updateSampleTimestamp;
     
+    // 負荷のレベル（範囲：10～80） - パワーの算出用
+    uint8_t resistanceLevel10;
+
 private:
-    // クランク回転数と速度を再計算する（最新化）
+    // クランク回転数と速度、パワーを再計算する（最新化）
     void update();
+    // クランク間時間から、クランク回転数と速度、パワーを計算する。
+    void calcIndoorBikeData(uint32_t crankIntervalTime, uint8_t resistanceLevel10, uint32_t* cadence2, uint32_t* speed100, int16_t* power);
 
 public:
-
     // インターバル時間を取得する（単位: マイクロ秒 - 1秒/1000000）
     uint32_t getIntervalTime(void);
     // クランク回転数を取得する（単位：rpm の 2倍）
     uint32_t getCadence2(void);
     // 速度を取得する（単位： km/h の 100倍）
     uint32_t getSpeed100(void);
+    // パワーを取得する（単位： watt）
+    int16_t getPower(void);
+    // 負荷のレベルを取得・設定する（範囲：10～80）
+    uint8_t getResistanceLevel10(void);
+    void setResistanceLevel10(uint8_t resistanceLevel10);
 
 private:
     // STEPセンサーのイベントハンドラ
     void onStepSensor(MicroBitEvent);
+
+private:
+    // Coefficient of Cadence and Speed
+    static const uint64_t K_STEP_CADENCE =  120000000;
+    static const uint64_t K_STEP_SPEED   = 1800000000;
+
+    // https://diary.cyclekikou.net/archives/15876
+    static const double K_POWER = 0.8 * (70 * 9.80665) / (360 * 0.95 * 100); // weight(70kg)
+    static const double K_INCLINE_A = 0.9; // Incline(%) - a
+    static const double K_INCLINE_B = 0.6; // Incline(%) - b
 
 };
 

@@ -33,6 +33,7 @@ MicroBitIndoorBikeStepService *service;
 void setup()
 {
     sensor = new MicroBitIndoorBikeStepSensor(uBit);
+    sensor->setResistanceLevel10(20);
     service = new MicroBitIndoorBikeStepService(uBit, *sensor);
     sensor->idleTick();
 }

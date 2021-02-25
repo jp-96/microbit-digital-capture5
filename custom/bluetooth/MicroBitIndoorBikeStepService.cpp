@@ -132,7 +132,6 @@ MicroBitIndoorBikeStepService::MicroBitIndoorBikeStepService(MicroBit &_uBit, Mi
 
 void MicroBitIndoorBikeStepService::onDataWritten(const GattWriteCallbackParams *params)
 {
-    uBit.serial.printf("CP:%" PRIu32 ", onDataWritten\r\n", (uint32_t)system_timer_current_time());
     if (params->handle == fitnessMachineControlPointCharacteristicHandle && params->len >= 1)
     {
         this->doFitnessMachineControlPoint(params);
@@ -141,7 +140,6 @@ void MicroBitIndoorBikeStepService::onDataWritten(const GattWriteCallbackParams 
 
 void MicroBitIndoorBikeStepService::doFitnessMachineControlPoint(const GattWriteCallbackParams *params)
 {
-    uBit.serial.printf("CP:%" PRIu32 ", doFitnessMachineControlPoint\r\n", (uint32_t)system_timer_current_time());
     uint8_t responseBuffer[3];
     responseBuffer[0] = FTMP_OP_CODE_CPPR_80_RESPONSE_CODE;
     uint8_t *opCode=&responseBuffer[1];
@@ -221,13 +219,16 @@ void MicroBitIndoorBikeStepService::doFitnessMachineControlPoint(const GattWrite
     }
     
     // Debug - USB Serial
-    uBit.serial.printf("CP:%" PRIu32 ", opCode[0x%02X], result[0x%02X], data", (uint32_t)system_timer_current_time(), opCode[0], result[0]);
-    for (int i=0; i<params->len; i++)
+    if (true)
     {
-        uBit.serial.printf(", 0x%02X", params->data[i]);
+        uBit.serial.printf("CP:%" PRIu32 ", opCode[0x%02X], result[0x%02X], data", (uint32_t)system_timer_current_time(), opCode[0], result[0]);
+        for (int i=0; i<params->len; i++)
+        {
+            uBit.serial.printf(", 0x%02X", params->data[i]);
+        }
+        uBit.serial.printf("\r\n");
     }
-    uBit.serial.printf("\r\n");
-    
+
 }
 
 void MicroBitIndoorBikeStepService::indoorBikeUpdate(MicroBitEvent e)
@@ -235,10 +236,11 @@ void MicroBitIndoorBikeStepService::indoorBikeUpdate(MicroBitEvent e)
     if (uBit.ble->getGapState().connected)
     {
         uint8_t buff[indoorBikeDataCharacteristicBufferSize];
-        struct_pack(buff, "<HHH",
+        struct_pack(buff, "<HHHh",
             FTMP_FLAGS_INDOOR_BIKE_DATA_CHAR,
             this->indoorBike.getSpeed100(),
-            this->indoorBike.getCadence2()
+            this->indoorBike.getCadence2(),
+            this->indoorBike.getPower()
         );
         uBit.ble->gattServer().notify(indoorBikeDataCharacteristicHandle
             , (uint8_t *)&buff, indoorBikeDataCharacteristicBufferSize);

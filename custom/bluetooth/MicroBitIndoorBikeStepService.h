@@ -38,7 +38,7 @@ SOFTWARE.
 #                                                0 (bit  9) Heart Rate Present
 #                                                 0 (bit  8) Expended Energy Present
 #                                                  0 (bit  7) Average Power Present
-#                                                   0 (bit  6) Instantaneous Power Present
+#                                                   1 (bit  6)*Instantaneous Power Present
 #                                                    0 (bit  5) Resistance Level Present
 #                                                     0 (bit  4) Total Distance Present
 #                                                      0 (bit  3) Average Cadence present
@@ -46,7 +46,7 @@ SOFTWARE.
 #                                                        0 (bit  1) Average Speed present
 #                                                         0 (bit  0) More Data
 #                                          5432109876543210 */
-#define FTMP_FLAGS_INDOOR_BIKE_DATA_CHAR 0b0000000000000100
+#define FTMP_FLAGS_INDOOR_BIKE_DATA_CHAR 0b0000000001000100
 
 // # Fitness Machine Control Point Procedure Requirements
 // # 0x00 M Request Control
@@ -76,7 +76,7 @@ SOFTWARE.
 #                                                  000000000000000 (bits 17-31) Reserved for Future Use
 #                                                                 0 (bit 16) User Data Retention Supported
 #                                                                  0 (bit 15) Force on Belt and Power Output Supported
-#                                                                   0 (bit 14) Power Measurement Supported
+#                                                                   1 (bit 14)*Power Measurement Supported
 #                                                                    0 (bit 13) Remaining Time Supported
 #                                                                     0 (bit 12) Elapsed Time Supported
 #                                                                      0 (bit 11) Metabolic Equivalent Supported
@@ -92,7 +92,7 @@ SOFTWARE.
 #                                                                                1 (bit  1)*Cadence Supported
 #                                                                                 0 (bit  0) Average Speed Supported
 #                                                  10987654321098765432109876543210 */
-#define FTMP_FLAGS_FITNESS_MACINE_FEATURES_FIELD 0b00000000000000000000000000000010
+#define FTMP_FLAGS_FITNESS_MACINE_FEATURES_FIELD 0b00000000000000000100000000000010
 
 /*
 # Definition of the bits of the Target Setting Features field
@@ -173,7 +173,7 @@ private:
     uint16_t id;
     
     // Characteristic buffer
-    static const uint16_t indoorBikeDataCharacteristicBufferSize = 2+2+2; // "<HHH", FTMS p.42, <Flags>, <Instantaneous Speed>, <Instantaneous Cadence>
+    static const uint16_t indoorBikeDataCharacteristicBufferSize = 2+2+2+2; // "<HHHh", FTMS p.42, <Flags>, <Instantaneous Speed>, <Instantaneous Cadence>, <Instantaneous Power Present>
     uint8_t indoorBikeDataCharacteristicBuffer[indoorBikeDataCharacteristicBufferSize];
     static const uint16_t fitnessMachineControlPointCharacteristicBufferSize = 1+18; // "<B*" , FTMS p.50, <Op Code>, <Parameter>
     uint8_t fitnessMachineControlPointCharacteristicBuffer[fitnessMachineControlPointCharacteristicBufferSize];
