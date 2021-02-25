@@ -137,3 +137,4 @@ dmypy.json
 /microbit
 /.mbed
 /mbed.bld
+/mbed-src.lib
