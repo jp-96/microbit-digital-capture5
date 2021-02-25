@@ -30,12 +30,32 @@ MicroBit uBit;
 MicroBitIndoorBikeStepSensor *sensor;
 MicroBitIndoorBikeStepService *service;
 
+void addResistanceLevel(int8_t addLevel)
+{
+    sensor->setResistanceLevel10(sensor->getResistanceLevel10() + (addLevel*10));
+    uBit.display.print(sensor->getResistanceLevel10()/10);
+}
+
+void onButtonA(MicroBitEvent e)
+{
+    addResistanceLevel(-1);
+}
+
+void onButtonB(MicroBitEvent e)
+{
+    addResistanceLevel(1);
+}
+
 void setup()
 {
     sensor = new MicroBitIndoorBikeStepSensor(uBit);
-    sensor->setResistanceLevel10(20);
+    addResistanceLevel(1);
     service = new MicroBitIndoorBikeStepService(uBit, *sensor);
     sensor->idleTick();
+
+    uBit.messageBus.listen(MICROBIT_ID_BUTTON_A, MICROBIT_BUTTON_EVT_CLICK, onButtonA);
+    uBit.messageBus.listen(MICROBIT_ID_BUTTON_B, MICROBIT_BUTTON_EVT_CLICK, onButtonB);
+
 }
 
 int main()
